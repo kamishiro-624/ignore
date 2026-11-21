@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Practice Mirror</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eef2;--surface:#f7f9fb;--ink:#17283a;--muted:#5d6e7e;--line:#c9d3dc;--brass:#a9741a;--brass-ink:#fff;--rec:#b3402f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101a24;--surface:#192634;--ink:#e6edf3;--muted:#92a3b3;--line:#2c3d4e;--brass:#e0a64a;--brass-ink:#1a1204;--rec:#e0705c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101a24;--surface:#192634;--ink:#e6edf3;--muted:#92a3b3;--line:#2c3d4e;--brass:#e0a64a;--brass-ink:#1a1204;--rec:#e0705c;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:580px;margin:0 auto;padding:28px 20px 56px}
+h1,h2{font-family:Newsreader,Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0}
+h1{font-size:2.1rem;line-height:1.1}h2{font-size:1.3rem;margin:28px 0 8px}
+p{margin:.4em 0;color:var(--muted);max-width:62ch}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,audio:focus-visible,input:focus-visible+button{outline:3px solid var(--brass);outline-offset:2px}
+.primary{background:var(--brass);color:var(--brass-ink);border-color:transparent;font-weight:600}
+.big{width:100%;padding:18px;font-size:1.15rem;margin-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:18px}
+.card strong{font-family:Newsreader,Georgia,serif;font-size:1.2rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.hide{display:none!important}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.rec{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+.time{font:600 2.6rem Newsreader,Georgia,serif;font-variant-numeric:tabular-nums}
+.issue{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0}
+.issue .bar{font:600 1.15rem Newsreader,Georgia,serif;min-width:4.4rem}
+.issue .what{flex:1}.issue small{display:block;color:var(--muted)}
+.issue button{padding:8px 12px}
+audio{width:100%;margin-top:6px}
+.note{font-size:.9rem;border-left:3px solid var(--brass);padding-left:12px;margin-top:20px}
+.err{color:var(--rec);font-weight:600}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:14px;overflow:auto;max-height:460px}.sheet:empty{display:none}.sheet svg{display:block;width:100%;min-width:560px;height:auto}.sheet .ln{stroke:var(--ink);stroke-width:1}.sheet .nh{fill:var(--ink)}.sheet .op{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.sheet text{fill:var(--muted);font:11px system-ui}.sheet .bad{fill:var(--rec);opacity:.16}
+select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;max-width:100%}label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:var(--muted)}.card label{margin-top:12px}
+.tl{position:relative;height:28px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:14px 0 4px;overflow:hidden}
+.tl button{position:absolute;top:0;bottom:0;padding:0;border:0;border-radius:0;min-width:3px}
+.tl .f{background:var(--brass);opacity:.6}.tl .m{background:var(--rec);z-index:1}.tl .l{background:var(--line)}
+.dots{display:block;letter-spacing:.2em;margin-top:2px}
+.issue .btns{display:flex;flex-direction:column;gap:6px}
+.mark{padding:34px 18px;font-size:1.4rem}
+.tl .pin{width:4px;min-width:4px;background:var(--ink);border-left:1px solid var(--surface);border-right:1px solid var(--surface);z-index:2}
+.sheet .mk{fill:none;stroke:var(--brass);stroke-width:2;stroke-dasharray:5 3}
+.tl .ph{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--surface);box-shadow:0 0 0 1.5px var(--ink);z-index:3;pointer-events:none}
+.pills{display:block;margin-top:6px}.pill{padding:6px 12px;border-radius:999px;font-size:.85rem;margin:4px 6px 0 0}.pill[aria-pressed=true]{background:var(--brass);color:var(--brass-ink);border-color:transparent;font-weight:600}
+.card label.chk{flex-direction:row;align-items:center;gap:10px;font-size:1rem;color:var(--ink)}input[type=checkbox]{width:20px;height:20px;accent-color:var(--brass);margin:0}
+</style>
+</head>
+<body>
+<main>
+<section id="home">
+ <h1>Practice mirror</h1>
+ <p>Load your score, press Start and put the phone beside you. Practise however you like: run sections, stop, go back, repeat. When you finish, the app shows which bars had notes to check, and how often.</p>
+ <div class="card">
+  <strong id="sTitle">No score loaded</strong>
+  <p id="sInfo">Import a MusicXML file (.musicxml, .xml or .mxl), or try the demo tune.</p>
+  <label id="partWrap" class="hide">Your part<select id="part"></select></label>
+  <p id="partNote" class="hide"></p>
+  <div class="row">
+   <input type="file" id="file" accept=".musicxml,.xml,.mxl,application/xml,text/xml,application/zip,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml">
+   <button id="pick">Import MusicXML</button>
+   <button id="demo">Use demo tune</button>
+  </div>
+ </div>
+ <div class="sheet" id="homeSheet" aria-label="Score preview"></div>
+ <div class="card" id="pre">
+  <strong>Before you start</strong>
+  <p><small>Optional. These play before recording begins, so they don’t affect the analysis.</small></p>
+  <label class="chk"><input type="checkbox" id="optCount"><span id="countTxt">Count-in: 4 clicks at the score’s tempo</span></label>
+  <label class="chk"><input type="checkbox" id="optDrone"><span>Reference drone for 5 seconds, before the count-in</span></label>
+  <div class="row hide" id="droneRow"><label>Note (concert pitch)<select id="droneNote"></select></label><label>Octave<select id="droneOct"></select></label></div>
+ </div>
+ <div class="card" id="listen">
+  <strong>How it listens</strong>
+  <label>Relaxed chord check<select id="optPiano"><option value="auto">Automatic: on for two-staff parts</option><option value="on">Always on</option><option value="off">Off</option></select></label>
+  <p><small>For piano and pedalled music: a quiet melody over loud accompaniment, or harmonies blurred by the sustain pedal, are flagged less often. Choose Off for unpedalled keyboard music. <span id="pianoAuto" class="hide">This part has two staves, so it is on.</span></small></p>
+ </div>
+ <p class="note"><strong>Limits, up front.</strong> Browsers stop recording when the screen locks, so keep this page open with the screen on. The app mostly hears note names. On a single-line part it also checks the octave (roughly G3 to C7; above D♯6 it can only tell that a note sounded too low) and whether repeated notes were played again rather than held. It does not judge tuning, tempo or rhythm otherwise, and it can’t follow percussion. A heavy sustain pedal blurs piano chords, so expect fewer reliable flags there. The notation preview is simplified. For a photo or PDF, convert it to MusicXML first with MuseScore or Audiveris. Audio and score stay on this device, and the latest session is kept.</p>
+ <button class="primary big" id="start" disabled>Start practice session</button>
+ <p id="err" class="err" role="alert"></p>
+ <div id="lastWrap" class="hide"><h2>Last session</h2><button id="openLast">Open last review</button></div>
+</section>
+<section id="live" class="rec hide" aria-live="polite">
+ <div class="time" id="clock">0:00</div>
+ <p id="status">Stay quiet for a moment…</p>
+ <button id="mark" class="primary big mark">Mark this moment</button>
+ <p id="markMsg" role="status"></p>
+ <p id="markHint"><small>Tap to flag something you want to revisit, such as tone or phrasing. A Bluetooth page-turner pedal also works (arrow or Page keys).</small></p>
+ <button id="stop">Finish session</button>
+</section>
+<section id="review" class="hide">
+ <h1>Session review</h1>
+ <p id="sum"></p>
+ <div class="tl" id="tl"></div>
+ <p><small>Gold: followed · Red: notes to check · Grey: couldn’t match · Dark tick: a moment you marked. Tap a segment to hear it. On the notation, shading marks bars to check and a dashed outline marks bars near a moment you marked.</small></p>
+ <div class="sheet" id="revSheet"></div>
+ <h2>Bars to check</h2>
+ <div id="issues"></div>
+ <p id="ign" class="hide"><span id="ignTxt"></span> <button id="unign">Show them again</button></p>
+ <div id="improvedWrap" class="hide"><h2>Bars that now match</h2><div id="improved"></div></div>
+ <div id="marksWrap" class="hide"><h2>Moments you marked</h2><div id="marks"></div></div>
+ <h2>Full recording</h2>
+ <audio id="player" controls></audio>
+ <button class="primary big" id="back">Back to start</button>
+</section>
+</main>
+
+<script>
+
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+var NAMES=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+var score=null;
+
+function fmt(t){t=Math.max(0,Math.round(t));return Math.floor(t/60)+":"+("0"+(t%60)).slice(-2)}
+function show(id){["home","live","review"].forEach(function(x){$(x).classList.toggle("hide",x!==id)});window.scrollTo(0,0)}
+
+/* ---------- MusicXML parsing (every pitched part, shifted to concert pitch) ---------- */
+function parsePart(part){
+  var div=1,cur=0,tempo=null,openTie={},lb=0,MS=[],M=null,sh=0,shift=0,nst=1,STEP={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  Array.prototype.forEach.call(part.querySelectorAll(":scope > measure"),function(m){
+    var mn=m.getAttribute("number");
+    if(M&&cur<M.max)cur=M.max; /* the previous measure ends where its longest voice ends, even if a shorter voice (or a trailing backup) left cur earlier */
+    M={mn:mn,start:cur,max:cur,items:[],nn:0,fwd:false,back:0,es:null,ee:false,en:null};MS.push(M);
+    var item=function(c){
+      var tg=c.tagName,q=function(s){return c.querySelector(s)};
+      if(tg==="attributes"){
+        if(q("divisions")) div=+q("divisions").textContent;
+        if(q("staves")) nst=Math.max(nst,+q("staves").textContent||1);
+        var tr=q("transpose");
+        if(tr){ /* written pitch + chromatic (+ octave-change) = sounding pitch */
+          var cr=tr.querySelector("chromatic"),oc=tr.querySelector("octave-change");
+          sh=(cr?+cr.textContent:0)+12*(oc?+oc.textContent:0);if(sh&&!shift)shift=sh;
+        }
+      }
+      else if(tg==="barline"){ /* repeat signs and numbered endings (1st/2nd time bars) */
+        var rp=q("repeat"),en=q("ending");
+        if(rp){if(rp.getAttribute("direction")==="forward")M.fwd=true;else M.back=+rp.getAttribute("times")||2}
+        if(en){if(en.getAttribute("type")==="start")M.es=(en.getAttribute("number")||"").match(/\d+/g)||[];else M.ee=true}
+      }
+      else if(tg==="direction"){var s=q("sound[tempo]");if(s&&!tempo) tempo=+s.getAttribute("tempo")}
+      else if(tg==="backup"){cur-=+q("duration").textContent/div;lb=cur}
+      else if(tg==="forward"){cur+=+q("duration").textContent/div;lb=cur}
+      else if(tg==="note"){
+        if(q("grace"))return;
+        if(q("cue")){ /* cue notes show another part: never expected from this player, but they still occupy time */
+          if(!q("chord")){lb=cur;cur+=q("duration")?+q("duration").textContent/div:0}
+          return;
+        }
+        var ch=!!q("chord"),pp=q("pitch"),stf=q("staff")?+q("staff").textContent:1,vo=q("voice")?q("voice").textContent:"1",
+            dur=q("duration")?+q("duration").textContent/div:0;
+        if(pp){ /* every voice and staff counts: piano left hands are often voice 2 or 5 */
+          var al=pp.querySelector("alter")?+pp.querySelector("alter").textContent:0,
+              midi=12*(+pp.querySelector("octave").textContent+1)+STEP[pp.querySelector("step").textContent.trim().toUpperCase()]+al+sh,
+              key=vo+"|"+stf+"|"+midi,ts=!!q("tie[type=stop]")||!!q("notations tied[type=stop]"),tn=!!q("tie[type=start]")||!!q("notations tied[type=start]"),it=ts?openTie[key]:null;
+          if(it)it.dur+=dur; /* the second half of a tie lengthens the first note */
+          else{it={midi:midi,beat:ch?lb:cur,dur:dur,staff:stf};M.items.push(it);M.nn++}
+          if(tn)openTie[key]=it;else delete openTie[key];
+        }
+        if(!ch){lb=cur;cur+=dur}
+      }
+    };
+    Array.prototype.forEach.call(m.children,function(c){item(c);if(cur>M.max)M.max=cur});
+  });
+  /* which numbered ending each bar belongs to */
+  var act=null;MS.forEach(function(x,j){if(x.fwd&&!x.es)act=null; /* a new repeated section cannot still be inside an ending whose end sign was left out */
+    if(x.es)act=x.es.map(Number);x.en=act;x.len=Math.max(0,(MS[j+1]?MS[j+1].start:x.max)-x.start);if(x.ee)act=null});
+  /* play order: follow repeat signs and 1st/2nd endings so the events match how the piece is actually played */
+  var order=[],i=0,sec=0,pass=1,guard=MS.length*6+8;
+  while(i<MS.length&&guard-->0){
+    var x=MS[i];
+    if(x.fwd&&sec!==i){sec=i;pass=1}
+    if(x.en&&x.en.length&&x.en.indexOf(pass)<0){i++;continue}
+    order.push(x);
+    if(x.back&&pass<x.back){pass++;i=sec;continue}
+    if(x.back){pass=1;sec=i+1}
+    else if(x.ee&&pass>1){pass=1;sec=i+1}
+    i++;
+  }
+  function build(ord){
+  var all=[],off=0,count=0;
+  ord.forEach(function(x){
+    x.items.forEach(function(n){all.push({midi:n.midi,beat:n.beat-x.start+off,dur:n.dur,measure:x.mn,staff:n.staff})});
+    off+=x.len;count+=x.nn;
+  });
+  all.sort(function(a,b){return a.beat-b.beat||a.midi-b.midi});
+  var events=[];
+  all.forEach(function(n){var e=events[events.length-1];if(e&&Math.abs(e.beat-n.beat)<.01){if(e.midis.indexOf(n.midi)<0){e.midis.push(n.midi);if(nst>1)e.st.push(n.staff)} /* same pitch in both hands is one note */e.dur=Math.max(e.dur,n.dur)}else{var ne={beat:n.beat,dur:n.dur,midis:[n.midi],measure:n.measure};if(nst>1)ne.st=[n.staff];events.push(ne)}});
+    return {events:events,count:count};
+  }
+  var B=build(order),events=B.events,count=B.count,same=order.length===MS.length&&order.every(function(x,j){return x===MS[j]}),disp=same?null:build(MS).events; /* disp: bars as printed, for the sheet preview */
+  return {tempo:tempo,shift:shift,count:count,events:events,disp:disp,staves:nst};
+}
+function parseXML(txt,fallbackTitle){
+  var d=new DOMParser().parseFromString(txt,"application/xml");
+  if(d.querySelector("parsererror")||!d.querySelector("score-partwise")) throw new Error("not partwise");
+  var names={},parts=[],tempo=null,seen={};
+  Array.prototype.forEach.call(d.querySelectorAll("part-list > score-part"),function(sp){var n=sp.querySelector("part-name");names[sp.getAttribute("id")]=n&&n.textContent.trim()});
+  Array.prototype.forEach.call(d.querySelectorAll("score-partwise > part"),function(pe,i){
+    var p=parsePart(pe);
+    if(p.tempo&&!tempo) tempo=p.tempo;
+    if(!p.count) return; /* percussion or empty part */
+    p.id=pe.getAttribute("id")||("P"+(i+1));
+    p.name=names[p.id]||("Part "+(i+1));
+    parts.push(p);
+  });
+  if(!parts.length) throw new Error("no notes");
+  parts.forEach(function(p){seen[p.name]=(seen[p.name]||0)+1});
+  var nth={};
+  parts.forEach(function(p){if(seen[p.name]>1){nth[p.name]=(nth[p.name]||0)+1;p.name+=" ("+nth[p.name]+")"}});
+  var t=d.querySelector("work-title,movement-title");
+  return {title:(t&&t.textContent.trim())||fallbackTitle,tempo:tempo,parts:parts,sel:0};
+}
+function demoScore(){
+  var A=[64,1,64,1,65,1,67,1,67,1,65,1,64,1,62,1,60,1,60,1,62,1,64,1],
+      seq=A.concat([64,1.5,62,.5,62,2],A,[62,1.5,60,.5,60,2]),beat=0,ev=[];
+  for(var i=0;i<seq.length;i+=2){ev.push({beat:beat,dur:seq[i+1],midis:[seq[i]],measure:String(Math.floor(beat/4)+1)});beat+=seq[i+1]}
+  return {title:"Ode to Joy (demo)",tempo:100,sel:0,parts:[{id:"P1",name:"Melody",tempo:100,shift:0,count:ev.length,events:ev}]};
+}
+
+/* ---------- compressed MusicXML (.mxl is a zip): small built-in reader, no library needed ---------- */
+function mxlErr(m){var e=new Error(m);e.mxl=1;return e}
+function inflateRaw(u8){
+  if(typeof DecompressionStream==="undefined") throw mxlErr("This browser can’t open .mxl files. Try a current Chrome, Safari or Firefox, or in MuseScore choose Export, then uncompressed MusicXML (.musicxml).");
+  return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer().then(function(b){return new Uint8Array(b)});
+}
+function unzip(buf){
+  var u=new Uint8Array(buf),v=new DataView(buf),i=u.length-22,files={},k,n,p;
+  while(i>=0&&i>=u.length-22-65535&&v.getUint32(i,true)!==0x06054b50)i--;
+  if(i<0||v.getUint32(i,true)!==0x06054b50) throw mxlErr("That .mxl file looks damaged.");
+  n=v.getUint16(i+10,true);p=v.getUint32(i+16,true);
+  for(k=0;k<n;k++){
+    if(p+46>u.length||v.getUint32(p,true)!==0x02014b50) throw mxlErr("That .mxl file looks damaged.");
+    var nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true);
+    files[new TextDecoder().decode(u.subarray(p+46,p+46+nl))]={meth:v.getUint16(p+10,true),csz:v.getUint32(p+20,true),lo:v.getUint32(p+42,true)};
+    p+=46+nl+el+cl;
+  }
+  return {files:files,read:function(name){
+    var f=files[name];if(!f) return Promise.resolve(null);
+    var s=f.lo+30+v.getUint16(f.lo+26,true)+v.getUint16(f.lo+28,true),raw=u.subarray(s,s+f.csz);
+    if(f.meth===0) return Promise.resolve(raw);
+    if(f.meth===8) return inflateRaw(raw);
+    throw mxlErr("That .mxl file uses a compression this app can’t read. Export uncompressed MusicXML (.musicxml) instead.");
+  }};
+}
+function readMxl(buf){
+  var z=unzip(buf),dec=new TextDecoder();
+  return z.read("META-INF/container.xml").then(function(c){
+    var path=null;
+    if(c){var d=new DOMParser().parseFromString(dec.decode(c),"application/xml"),rf=d.querySelector("rootfile");path=rf&&rf.getAttribute("full-path")}
+    if(!path||!z.files[path]) path=Object.keys(z.files).filter(function(n){return !/^META-INF\//i.test(n)&&/\.(xml|musicxml)$/i.test(n)})[0];
+    if(!path) throw mxlErr("Couldn’t find a score inside that .mxl file.");
+    return z.read(path);
+  }).then(function(x){return dec.decode(x)});
+}
+
+/* ---------- score state: all parts kept, one active ---------- */
+var lib=null;
+function usePart(i){
+  var p=lib.parts[i],t=p.tempo||lib.tempo,sh=p.shift||0,n=Math.abs(sh);
+  lib.sel=i;
+  score={title:lib.title,tempo:t,count:p.count,events:p.events,disp:p.disp,staves:p.staves||1,part:p.name,multi:lib.parts.length>1};
+  drawSheet($("homeSheet"),score,[]);
+  $("sTitle").textContent=lib.title;
+  $("sInfo").textContent=p.count+" note"+(p.count===1?"":"s")+(t?" · marked at "+Math.round(t)+" BPM":"");
+  $("partNote").textContent=sh?"Shown at concert (sounding) pitch, which is what the microphone hears. This part is written "+n+" semitone"+(n===1?"":"s")+" "+(sh<0?"above":"below")+" where it sounds.":"";
+  $("partNote").classList.toggle("hide",!sh);updCount();
+  updPiano();
+  $("start").disabled=false;
+  saveScore(lib);
+}
+function setScore(s){
+  if(!s.parts){ /* score saved by an older version */
+    var ev=s.events||s.notes.map(function(n){return{beat:n.beat,dur:n.dur,midis:[n.midi],measure:n.measure}});
+    s={title:s.title,tempo:s.tempo,sel:0,parts:[{id:"P1",name:"Part 1",tempo:s.tempo,shift:0,count:(s.notes||ev).length,events:ev}]};
+  }
+  lib=s;
+  var sel=$("part");sel.innerHTML="";
+  s.parts.forEach(function(p,i){var o=document.createElement("option");o.value=i;o.textContent=p.name;sel.appendChild(o)});
+  var i0=Math.min(Math.max(s.sel|0,0),s.parts.length-1);
+  sel.value=i0;
+  $("partWrap").classList.toggle("hide",s.parts.length<2);
+  usePart(i0);
+}
+$("part").onchange=function(){usePart(+this.value)};
+$("pick").onclick=function(){$("file").click()};
+$("file").onchange=function(){
+  var f=this.files[0];if(!f)return;
+  $("err").textContent="";
+  var name=f.name.replace(/\.\w+$/,"");
+  Promise.resolve().then(function(){return /\.mxl$/i.test(f.name)?f.arrayBuffer().then(readMxl):f.text()})
+   .then(function(t){setScore(parseXML(t,name))})
+   .catch(function(e){$("err").textContent=e&&e.mxl?e.message:"Couldn’t read that file. Use a score-partwise MusicXML file (.musicxml, .xml or .mxl) with at least one pitched note."});
+  this.value="";
+};
+$("demo").onclick=function(){$("err").textContent="";setScore(demoScore())};
+
+/* ---------- storage (last session only) ---------- */
+var memLast=null,dbp=null;
+function db(){
+  return dbp||(dbp=new Promise(function(res){
+    try{var r=indexedDB.open("practice-mirror-v2",1);
+      r.onupgradeneeded=function(){r.result.createObjectStore("s",{keyPath:"id"})};
+      r.onsuccess=function(){res(r.result)};r.onerror=function(){res(null)};
+    }catch(e){res(null)}}));
+}
+function saveLast(s){
+  memLast=s;
+  return db().then(function(d){return d&&new Promise(function(res){
+    try{var t=d.transaction("s","readwrite");t.objectStore("s").put(s);t.oncomplete=t.onerror=t.onabort=function(){res()}}catch(e){res()}})});
+}
+function loadLast(){
+  return db().then(function(d){
+    if(!d) return memLast;
+    return new Promise(function(res){
+      try{var r=d.transaction("s").objectStore("s").get("last");r.onsuccess=function(){res(r.result||memLast)};r.onerror=function(){res(memLast)}}catch(e){res(memLast)}});
+  });
+}
+
+/* ---------- the loaded score lives in IndexedDB (localStorage tops out near 5 MB, which a big full score can exceed) ---------- */
+var memScore=null;
+function saveScore(l){
+  memScore=l;
+  return db().then(function(d){
+    if(!d){try{localStorage.setItem("pm-score",JSON.stringify(l))}catch(e){}return}
+    return new Promise(function(res){
+      try{var t=d.transaction("s","readwrite");t.objectStore("s").put({id:"score",data:l});
+        t.oncomplete=function(){try{localStorage.removeItem("pm-score")}catch(e){}res()}; /* drop the old copy once the new one is safe */
+        t.onerror=t.onabort=function(){try{localStorage.setItem("pm-score",JSON.stringify(l))}catch(e){}res()};
+      }catch(e){res()}});
+  });
+}
+function loadScore(){
+  var legacy=function(){try{var v=localStorage.getItem("pm-score");return v?JSON.parse(v):null}catch(e){return null}}; /* score saved by an earlier version */
+  return db().then(function(d){
+    if(!d)return memScore||legacy();
+    return new Promise(function(res){
+      try{var r=d.transaction("s").objectStore("s").get("score");
+        r.onsuccess=function(){res((r.result&&r.result.data)||memScore||legacy())};
+        r.onerror=function(){res(memScore||legacy())};
+      }catch(e){res(memScore||legacy())}});
+  });
+}
+
+/* ---------- history: up to 10 sessions per piece, results only (audio is kept for the latest session) ---------- */
+var memHist={};
+function histKey(title,part){return "hist:"+title+"|"+(part||"")}
+function idbPut(o){
+  return db().then(function(d){return d&&new Promise(function(res){
+    try{var t=d.transaction("s","readwrite");t.objectStore("s").put(o);t.oncomplete=t.onerror=t.onabort=function(){res()}}catch(e){res()}})});
+}
+function loadHist(key){
+  return db().then(function(d){
+    if(!d) return memHist[key]||[];
+    return new Promise(function(res){
+      try{var r=d.transaction("s").objectStore("s").get(key);r.onsuccess=function(){res((r.result&&r.result.items)||memHist[key]||[])};r.onerror=function(){res(memHist[key]||[])}}catch(e){res(memHist[key]||[])}});
+  });
+}
+function syncHist(s){ /* rewrite this session's history entry when bars are marked or unmarked as intentional */
+  if(!s||!s.res||!s.res.followed)return Promise.resolve();
+  var key=s.key||histKey(s.title,s.part),hb=histBars(s.res,s.ignored);
+  return loadHist(key).then(function(a){var hit=false;a=a.map(function(e){if(e.at===s.at){hit=true;return {at:e.at,bars:hb||{}}}return e});if(!hit)return;memHist[key]=a;curHist=a;return idbPut({id:key,items:a})}).catch(function(){});
+}
+function addHist(key,entry){return loadHist(key).then(function(a){a=a.concat([entry]).slice(-10);memHist[key]=a;return idbPut({id:key,items:a})})}
+function histBars(res,ig){var o={},any=false;ig=ig||{};res.bars.forEach(function(b){if(!b.takes.length)return;any=true;if(ig[b.m])return; /* bars marked intentional are left out of the trend */o[b.m]=[b.takes.length,b.takes.filter(function(t){return !t.bad}).length]});return any?o:null}
+
+/* ---------- live capture ---------- */
+var R=null;
+function beep(ctx){try{var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.18)}catch(e){}}
+function tick(){return new Promise(function(r){setTimeout(r)})}
+function names(a){return a.filter(function(p,j){return a.indexOf(p)===j}).map(function(p){return NAMES[p]}).join(", ")}
+/* ---------- optional count-in and reference drone (play before recording starts) ---------- */
+function getOpts(){return{count:$("optCount").checked,drone:$("optDrone").checked,piano:$("optPiano").value,note:+$("droneNote").value,oct:+$("droneOct").value}}
+function updPiano(){$("pianoAuto").classList.toggle("hide",!($("optPiano").value==="auto"&&score&&score.staves>=2))}
+function bpmOf(){var t=score&&score.tempo?score.tempo:80;return Math.round(Math.min(240,Math.max(30,t)))}
+function updCount(){var t=score&&score.tempo;$("countTxt").textContent="Count-in: 4 clicks at "+(score?bpmOf()+" BPM"+(t?" (the score’s tempo)":" (the score has no tempo, so 80 is assumed)"):"the score’s tempo")}
+function initOpts(){
+  NAMES.forEach(function(n,i){var o=document.createElement("option");o.value=i;o.textContent=n;$("droneNote").appendChild(o)});
+  [3,4,5].forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=n;$("droneOct").appendChild(o)});
+  var d={count:false,drone:false,piano:"auto",note:9,oct:4};
+  try{var sv=JSON.parse(localStorage.getItem("pm-opts")||"null");if(sv)for(var k in d)if(k in sv)d[k]=sv[k]}catch(e){}
+  $("optCount").checked=!!d.count;$("optDrone").checked=!!d.drone;if(d.piano===true)d.piano="on";if(d.piano===false)d.piano="auto"; /* the earlier version stored a checkbox */
+  $("optPiano").value=["auto","on","off"].indexOf(d.piano)>=0?d.piano:"auto";$("droneNote").value=d.note;$("droneOct").value=d.oct;
+  function sync(){updPiano();$("droneRow").classList.toggle("hide",!$("optDrone").checked);try{localStorage.setItem("pm-opts",JSON.stringify(getOpts()))}catch(e){}}
+  ["optCount","optDrone","optPiano","droneNote","droneOct"].forEach(function(id){$(id).onchange=sync});
+  sync();
+}
+function rmsNow(r){r.an.getFloatTimeDomainData(r.tb);var N=r.tb.length,s=0,i;for(i=N-2048;i<N;i++)s+=r.tb[i]*r.tb[i];return Math.sqrt(s/2048)}
+function tone(c,f,t0,dur,gain){
+  var o=c.createOscillator(),g=c.createGain(),e=Math.min(.15,dur/3);
+  o.frequency.value=f;o.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(gain,t0+e);g.gain.setValueAtTime(gain,t0+dur-e);g.gain.linearRampToValueAtTime(0,t0+dur);
+  o.start(t0);o.stop(t0+dur+.02);
+}
+function click(c,t0,hi){
+  var o=c.createOscillator(),g=c.createGain();
+  o.frequency.value=hi?1600:1100;o.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.35,t0+.004);g.gain.exponentialRampToValueAtTime(.0001,t0+.06);
+  o.start(t0);o.stop(t0+.08);
+}
+var FRAME_MS=50,FPS=1000/FRAME_MS; /* analysis frames per second */
+function getLock(r){ /* the browser drops the screen lock whenever the page is hidden, so this is called again on return */
+  try{if(navigator.wakeLock&&(!r.lock||r.lock.released))navigator.wakeLock.request("screen").then(function(l){if(R===r)r.lock=l;else try{l.release()}catch(e){}}).catch(function(){})}catch(e){}
+}
+function startRec(r,pre){
+  if(R!==r)return;
+  r.rec.start(2000);r.t0=performance.now();r.timer=setInterval(frame,FRAME_MS);
+  $("mark").disabled=false;
+  if(pre){$("status").textContent="Listening. Practise as you like.";$("status").className=""}
+}
+/* With no options on, capture starts as before (the room is measured during the first 1.2 s).
+   With a drone or count-in: measure the room first, play the drone, then the count-in, then record. */
+function beginCapture(r){
+  var o=getOpts();r.tm=[];$("mark").disabled=true;
+  var later=function(fn,ms){r.tm.push(setTimeout(function(){if(R===r)fn()},Math.max(0,ms)))};
+  if(!o.count&&!o.drone){later(function(){startRec(r,false)},300);return}
+  var cal=0;
+  later(function(){
+    var iv=setInterval(function(){cal=Math.max(cal,rmsNow(r))},100);r.tm.push(iv);
+    later(function(){
+      clearInterval(iv);r.thr=Math.max(.006,cal*1.8);
+      var c=r.ctx,t=c.currentTime+.3,bpm=bpmOf(),beat=60/bpm,f=440*Math.pow(2,((o.oct+1)*12+o.note-69)/12),i;
+      if(o.drone){
+        $("status").textContent="Reference note: "+NAMES[o.note]+o.oct+" (concert pitch). Settle on it.";
+        tone(c,f,t,5,.1);tone(c,2*f,t,5,.03);t+=5.6;
+      }
+      if(o.count){
+        later(function(){$("status").textContent="Count-in at "+bpm+" BPM. Start on the next beat."},(t-c.currentTime)*1000);
+        for(i=0;i<4;i++)click(c,t+i*beat,i===0);
+        t+=4*beat;
+      }
+      later(function(){startRec(r,true)},(t-c.currentTime)*1000);
+    },1300);
+  },300);
+}
+function startSession(){
+  $("err").textContent="";
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){$("err").textContent="This browser can’t record audio. Try a current Chrome, Safari or Firefox.";return}
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(stream){
+    var AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),mime="",chunks=[],k;
+    if(ctx.resume)ctx.resume();
+    ["audio/webm;codecs=opus","audio/webm","audio/mp4"].some(function(c){if(MediaRecorder.isTypeSupported(c)){mime=c;return true}});
+    var opt={audioBitsPerSecond:32000};if(mime)opt.mimeType=mime;
+    var rec=new MediaRecorder(stream,opt);
+    rec.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    var lowM=127,polyN=0;score.events.forEach(function(e){if(e.midis.length>1)polyN++;e.midis.forEach(function(m0){if(m0<lowM)lowM=m0})});
+    /* 4096 reacts faster (about 93 ms). Its ~11 Hz bins are fine for one note at a time because peaks are interpolated, but chords with low notes need the longer 8192 window */
+    var an=ctx.createAnalyser();var srMult=ctx.sampleRate>96000?4:ctx.sampleRate>48000?2:1; /* keep the same Hz per bin and the same window length on 96/192 kHz interfaces */
+    an.fftSize=Math.min(32768,((polyN>score.events.length*.05&&lowM<55)?8192:4096)*srMult);an.smoothingTimeConstant=0;
+    ctx.createMediaStreamSource(stream).connect(an);
+    var N=an.fftSize,fs=ctx.sampleRate,k0=Math.ceil(65*N/fs),k1=Math.floor(2600*N/fs); /* 65 Hz (C2) to 2.6 kHz (up to D♯7) */
+    R={f0min:Math.max(0,lowM-2-36),mono:!(polyN>score.events.length*.25||score.staves>=2),relax:(function(){var pv=getOpts().piano;return pv==="on"||(pv==="auto"&&score.staves>=2)})(),stream:stream,ctx:ctx,rec:rec,chunks:chunks,mime:rec.mimeType||mime,an:an,k0:k0,k1:k1,sp:[],cha:[],tb:new Float32Array(N),fb:new Float32Array(N/2),ch:[],tt:[],rm:[],dp:[],marks:[],dev:[],cal:0,thr:null,t0:0,timer:null,lock:null,hid:false};
+    getLock(R);
+    show("live");$("status").textContent="Stay quiet for a moment…";$("status").className="";$("clock").textContent="0:00";$("markMsg").textContent="";$("mark").disabled=false;$("stop").disabled=false;
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    stream.getAudioTracks().forEach(function(t){
+      t.onended=function(){if(R&&R.stream===stream)devNote(MIC_GONE)};
+      t.onmute=function(){if(R&&R.stream===stream)devNote("The microphone went quiet. Another app may be using it. Part of the session may be missing.")};
+    });
+    beep(ctx);beginCapture(R);
+  }).catch(function(){$("err").textContent="Microphone access was blocked. Allow it in your browser’s site settings and try again."});
+}
+function fs0(r){return r.ctx.sampleRate}
+function frame(){
+  var r=R;if(!r)return;
+  r.an.getFloatTimeDomainData(r.tb);
+  var N=r.tb.length,s=0,i;for(i=N-2048;i<N;i++)s+=r.tb[i]*r.tb[i];
+  var rms=Math.sqrt(s/2048),t=(performance.now()-r.t0)/1000;
+  r.tt.push(t);$("clock").textContent=fmt(t);
+  var nb=Math.max(2,Math.round(FRAME_MS/10)),BL=Math.max(1,Math.min(Math.round(fs0(r)*.01),Math.floor(N/nb))),lo=1e9,hi=0,bi,bj,bs;
+  for(bi=0;bi<nb;bi++){bs=0;for(bj=N-(nb-bi)*BL;bj<N-(nb-bi-1)*BL;bj++)bs+=r.tb[bj]*r.tb[bj];bs=Math.sqrt(bs/BL);if(bs<lo)lo=bs;if(bs>hi)hi=bs}
+  r.rm.push(rms);r.dp.push(hi>0?lo/hi:1);
+  if(r.thr===null&&t<1.2){r.cal=Math.max(r.cal,rms);r.ch.push(null);return}
+  if(r.thr===null){r.thr=Math.max(.006,r.cal*1.8);$("status").textContent="Listening. Practise as you like.";beep(r.ctx);r.beepT=t}
+  if(r.beepT&&t<r.beepT+.5){r.ch.push(null);return} /* ignore the confirmation beep and its ring-out */
+  if(rms<=r.thr){r.ch.push(null);return}
+  r.an.getFloatFrequencyData(r.fb);
+  var v=new Float32Array(12),nr=0,pk=new Float32Array(64),mi,am,mx=0;
+  /* true spectral peaks only: each local maximum is placed by parabolic interpolation, then the strongest peak per semitone is kept (linear amplitude).
+     Leakage into neighbouring bins is not a peak, and a high note no longer counts for more just because its semitone spans more bins. */
+  var fbd=r.fb,pa=[],NN=r.tb.length,sr=r.ctx.sampleRate,mxA=0,b1,a0,c0,dn,dl,mf,rd,j;
+  for(i=Math.max(1,r.k0);i<=r.k1&&i<fbd.length-1;i++){
+    b1=fbd[i];a0=fbd[i-1];c0=fbd[i+1];
+    if(b1>a0&&b1>=c0&&isFinite(a0)&&isFinite(b1)&&isFinite(c0)){
+      dn=a0-2*b1+c0;dl=dn?.5*(a0-c0)/dn:0;
+      mf=69+12*Math.log2((i+dl)*sr/NN/440);rd=Math.round(mf);
+      if(rd>=36&&rd<=99&&Math.abs(mf-rd)<.45){am=Math.pow(10,(b1-.25*(a0-c0)*dl)/20);pa.push(rd-36,am);if(am>mxA)mxA=am}
+    }
+  }
+  for(j=0;j<pa.length;j+=2)if(pa[j+1]>=.02*mxA&&pa[j+1]>pk[pa[j]])pk[pa[j]]=pa[j+1];
+  for(i=0;i<64;i++){if(pk[i]){v[i%12]+=pk[i];if(pk[i]>mx)mx=pk[i]}}
+  if(rms<r.thr*1.4){ /* barely above the room: only accept it if the spectrum has a clear peak rather than hiss */
+    var nz=[];for(i=0;i<64;i++)if(pk[i])nz.push(pk[i]);nz.sort(function(x,y){return x-y});
+    if(!nz.length||mx<5*nz[nz.length>>1]){r.ch.push(null);return}
+  }
+  for(i=0;i<12;i++)nr+=v[i]*v[i];nr=Math.sqrt(nr)||1;
+  for(i=0;i<12;i++)v[i]/=nr;
+  r.ch.push(v);var fi=r.ch.length-1;
+  if(r.mono){
+    /* single-line part: take the lowest strong peak as the fundamental and turn down its 2nd to 8th harmonics, even when a harmonic is louder than the fundamental (common on flute) */
+    var pk2=pk.slice(),f0=-1,v2=new Float32Array(12),n2=0;
+    var im=0;for(i=0;i<64;i++)if(pk[i]===mx){im=i;break}
+    for(i=r.f0min;i<64;i++)if(pk[i]>=.25*mx){if(i<im-11&&!(pk[i+12]>=.25*pk[i]||pk[i+19]>=.25*pk[i]||pk[i+24]>=.25*pk[i]))continue;f0=i;break} /* a peak far below the strongest one must have its own harmonics, or it is a thump or key click, not a fundamental */ /* nothing below the part's lowest note can be its fundamental: ignores hum and thumps */
+    if(f0>=0)[12,19,24,28,31,34,36].forEach(function(od){if(f0+od<64&&pk2[f0+od])pk2[f0+od]=Math.min(pk2[f0+od]*.4,.8*pk[f0])});
+    for(i=0;i<64;i++)if(pk2[i])v2[i%12]+=pk2[i];
+    for(i=0;i<12;i++)n2+=v2[i]*v2[i];n2=Math.sqrt(n2)||1;
+    for(i=0;i<12;i++)v2[i]/=n2;
+    r.cha[fi]=v2;r.sp[fi]=pk2;
+  }else r.sp[fi]=pk;
+}
+var MIC_GONE="The microphone stopped. If a mic or headphones were unplugged, finish this session and start a new one.",
+    MARKKEYS=["ArrowRight","ArrowLeft","ArrowUp","ArrowDown","PageUp","PageDown"];
+function mark(){
+  var r=R;if(!r||!r.t0)return;
+  var t=(performance.now()-r.t0)/1000;
+  if(r.marks.length&&t-r.marks[r.marks.length-1]<.6)return;
+  r.marks.push(t);
+  $("markMsg").textContent="Marked "+fmt(t)+" ("+r.marks.length+" so far)";
+  try{if(navigator.vibrate)navigator.vibrate(40)}catch(e){}
+}
+function devNote(msg){
+  var r=R;if(!r||!r.t0)return;
+  var sec=Math.round((performance.now()-r.t0)/1000);if(r.dev[r.dev.length-1]!==sec)r.dev.push(sec);
+  $("status").textContent=msg;$("status").className="err";
+}
+document.addEventListener("keydown",function(e){
+  if(!R||!R.t0||$("live").classList.contains("hide")||MARKKEYS.indexOf(e.key)<0)return;
+  e.preventDefault();if(!e.repeat)mark();
+});
+if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener("devicechange",function(){
+  var r=R;if(!r||!r.t0||performance.now()-r.t0<2500)return;
+  var t=r.stream.getAudioTracks()[0];
+  devNote(!t||t.readyState==="ended"?MIC_GONE:"An audio device changed. If your microphone or headphones were unplugged, check that the clock is still running and the app is still hearing you, or finish and start a new session.");
+});
+document.addEventListener("visibilitychange",function(){
+  if(!R)return;
+  if(document.hidden)R.hid=true;
+  else{getLock(R);if(R.hid)$("status").textContent="The screen was off for a while, so part of the session may be missing. Keep this page open."}
+});
+function finish(){
+  var r=R;if(!r)return;R=null;clearInterval(r.timer);
+  (r.tm||[]).forEach(clearTimeout);
+  if(!r.t0){ /* cancelled before recording began: keep the previous session untouched */
+    r.stream.getTracks().forEach(function(t){t.stop()});
+    try{r.ctx.close()}catch(e){}try{if(r.lock)r.lock.release()}catch(e){}
+    $("stop").disabled=false;$("mark").disabled=false;show("home");return;
+  }
+  var dur=(performance.now()-r.t0)/1000;
+  $("stop").disabled=true;$("mark").disabled=true;$("status").textContent="Analysing your session…";$("status").className="";
+  var fin=false,go=function(){
+    if(fin)return;fin=true; /* runs once, whichever of onstop, an already-inactive recorder or the timeout gets here first */
+    r.stream.getTracks().forEach(function(t){t.stop()});
+    try{r.ctx.close()}catch(e){}try{if(r.lock)r.lock.release()}catch(e){}
+    var blob=new Blob(r.chunks,{type:r.mime||"audio/webm"});
+    analyse(r,dur).then(function(res){
+      var s={id:"last",blob:blob,duration:dur,title:score.title,part:score.multi?score.part:"",res:res,sc:{title:score.title,events:score.events,disp:score.disp,staves:score.staves||1},marks:r.marks,dev:r.dev,ignored:{},tags:{},at:Date.now()};s.key=histKey(s.title,s.part);
+      var hb=histBars(res);
+      return(res.followed&&hb?addHist(s.key,{at:s.at,bars:hb}):Promise.resolve()).then(function(){saveLast(s);openReview(s)});
+    }).catch(function(){$("stop").disabled=false;$("mark").disabled=false;show("home");$("err").textContent="Couldn’t analyse that session. Try again."});
+  };
+  r.rec.onstop=go;
+  if(r.rec.state==="inactive")go(); /* e.g. the microphone disconnected and the recorder stopped itself */
+  else{try{r.rec.stop()}catch(e){go()}setTimeout(go,3000)} /* some browsers never fire onstop */
+}
+
+/* ---------- follow the score: sliding-window alignment against the whole piece ---------- */
+async function analyse(r,dur){
+  var ch=r.ch,tt=r.tt,n=ch.length,ev=score.events,K=ev.length,i,k,c,f,T=new Float32Array(K*12),SG=new Uint8Array(K);
+  ev.forEach(function(e,q){
+    /* chord tones count 1 each. The overtone weight (fifth .3, third .1) goes only to pitch classes outside the chord, once, and is shared out as chords get denser, so big chords stay sharp */
+    var pcl=[],U=new Float32Array(12);e.midis.forEach(function(md){if(pcl.indexOf(md%12)<0)pcl.push(md%12)});
+    pcl.forEach(function(p){T[q*12+p]+=1;[[7,.3],[4,.1]].forEach(function(h){var z=(p+h[0])%12;if(pcl.indexOf(z)<0)U[z]=Math.max(U[z],h[1]/pcl.length)})});
+    for(c=0;c<12;c++)T[q*12+c]+=U[c];
+    SG[q]=pcl.length===1?1:0;
+    var s=0;for(c=0;c<12;c++)s+=T[q*12+c]*T[q*12+c];s=Math.sqrt(s);for(c=0;c<12;c++)T[q*12+c]/=s;
+  });
+  function dist(fi,kk){var v=ch[fi];if(v===null)return .45;if(r.mono&&SG[kk]&&r.cha[fi])v=r.cha[fi]; /* single notes use the overtone-corrected chroma */var d=0;for(var z=0;z<12;z++)d+=T[kk*12+z]*v[z];return 1-d}
+  function pen(k){if(prevEnd===null)return 0;var dd=Math.abs(k-prevEnd-1);return dd>12?3.24:.02*dd}
+  var runs=[],cur=null;
+  for(i=0;i<n;i++){if(ch[i]===null)continue;if(cur&&tt[i]-tt[cur.e]<=.8)cur.e=i;else{cur={s:i,e:i};runs.push(cur)}}
+  runs=runs.filter(function(u){return tt[u.e]-tt[u.s]>=1.5});
+  var W=[],played=0;
+  runs.forEach(function(u,ri){
+    played+=tt[u.e]-tt[u.s];
+    var L=[],p=u.s,b;
+    var WL=Math.round(4*FPS),ST=Math.round(2*FPS);
+    for(;;){b=Math.min(p+WL-1,u.e);L.push({a:p,b:b,run:ri});if(b===u.e)break;p+=ST}
+    while(L.length>1&&L[L.length-1].b-L[L.length-1].a<Math.round(1.5*FPS)){L.pop();L[L.length-1].b=u.e}
+    L.forEach(function(w,j){w.ta=j===0?w.a:w.a+Math.round(FPS);w.tb=j===L.length-1?w.b+1:w.a+Math.round(3*FPS);if(w.b-w.a>=Math.round(1.4*FPS))W.push(w)});
+  });
+  var bars={},order=[],prevEnd=null,wins=[],followed=0;
+  ev.forEach(function(e){if(!bars[e.measure]){bars[e.measure]=[];order.push(e.measure)}});
+  for(var wi=0;wi<W.length;wi++){
+    if(wi%6===0){$("status").textContent="Analysing… "+Math.round(wi/W.length*100)+"%";await tick()}
+    var w=W[wi],a=w.a,F=w.b-w.a+1,D=new Float32Array(F*K),P=new Uint8Array(F*K),d,v;
+    for(k=0;k<K;k++)D[k]=dist(a,k)+pen(k);
+    for(f=1;f<F;f++)for(k=0;k<K;k++){
+      var best=D[(f-1)*K+k],bd=0;
+      for(d=1;d<=8&&k-d>=0;d++){v=D[(f-1)*K+k-d]+.25*(d-1);if(v<best){best=v;bd=d}}
+      D[f*K+k]=best+dist(a+f,k);P[f*K+k]=bd;
+    }
+    var bk=0;for(k=1;k<K;k++)if(D[(F-1)*K+k]<D[(F-1)*K+bk])bk=k;
+    var t0=tt[w.a],t1=tt[w.b],cost=D[(F-1)*K+bk]/F;
+    if(cost>=.42){wins.push({t0:t0,t1:t1,s:0});continue}
+    var asg=new Array(F),kk=bk;
+    for(f=F-1;f>=0;f--){asg[f]=kk;kk-=P[f*K+kk]}
+    /* the next window starts well before this one ends, so anchor continuity at the event aligned to that start; across a pause (a new run) keep the end */
+    var nx=W[wi+1];prevEnd=(nx&&nx.run===w.run)?asg[Math.max(0,Math.min(F-1,nx.a-w.a))]-1:bk;
+    var by={};asg.forEach(function(e2,j){(by[e2]=by[e2]||[]).push(a+j)});
+    var vis=Object.keys(by).map(Number).sort(function(x,y){return x-y}),bw={},messy=false,badM=[];
+    var pcs=function(q2){return names(ev[q2].midis.map(function(m){return m%12}))};
+    var note=function(k2,bad,type,text,ta,tb){
+      var m=ev[k2].measure,o=bw[m]||(bw[m]={n:0,bad:0,ta:ta,tb:tb,type:"",text:""});
+      o.n++;o.ta=Math.min(o.ta,ta);o.tb=Math.max(o.tb,tb);
+      if(bad){o.bad++;if(!o.type){o.type=type;o.text=text}}
+    };
+    /* local tempo in seconds per beat, from the span this window matched: a skipped note shorter than about 3 frames could fall between samples, so it is not reported */
+    var spb=0,vl=vis[vis.length-1],bsp=ev[vl].beat-ev[vis[0]].beat,tsp=tt[by[vl][by[vl].length-1]]-tt[by[vis[0]][0]];
+    if(bsp>0&&tsp>0)spb=tsp/bsp;
+    var longEnough=function(q4){return !spb||ev[q4].dur*spb>=3/FPS};
+    vis.forEach(function(k2,idx){
+      var fa=by[k2],ta=tt[fa[0]],tb=tt[fa[fa.length-1]];
+      if(fa[0]<w.ta||fa[0]>=w.tb)return;
+      if(idx>0)for(var q=vis[idx-1]+1;q<k2;q++)if(longEnough(q)&&pcs(q)!==pcs(vis[idx-1])&&pcs(q)!==pcs(k2))note(q,true,"Note not heard","The score has "+names(ev[q].midis.map(function(m){return m%12}))+" here, but it wasn’t heard",ta,ta);
+      var fl=fa.filter(function(g){return ch[g]!==null}),Ex=ev[k2].midis.map(function(m){return m%12}).filter(function(p3,i3,a3){return a3.indexOf(p3)===i3}); /* an octave pair is one pitch class */
+      if(!fl.length)return;
+      var single=fl.length<2; /* a fast note may get one frame only: judge it just when it is clearly louder than the room, and only if it is nearly absent */
+      if(single){ /* one frame is only trustworthy in a steady stretch: clearly above the room, no dip inside it, and not an attack or release */
+        var g1f=fl[0],nbr=Math.max(r.rm[g1f-1]||0,r.rm[g1f+1]||0);
+        if(r.rm[g1f]<1.5*r.thr||r.dp[g1f]<.6||r.rm[g1f]<.6*nbr)return;
+      }
+      var skN=Math.max(1,Math.round(FPS/10)),vec=new Float32Array(12),use=fl.length>3*skN?fl.slice(skN):fl,tot=0;
+      var cc=r.mono&&Ex.length===1?r.cha:ch;
+      use.forEach(function(g){var cv=cc[g]||ch[g];for(var z=0;z<12;z++)vec[z]+=cv[z]});
+      for(c=0;c<12;c++)tot+=vec[c];for(c=0;c<12;c++)vec[c]/=tot||1;
+      var ratio=Ex.reduce(function(s2,p){return s2+vec[p]},0);
+      /* odd-harmonic and bright tones put much of the energy on the fifth and third above; accept a lone note whose pitch class is still the strongest */
+      var soft=Ex.length===1&&ratio>=.25&&vec.every(function(x2,p2){return p2===Ex[0]||x2<=vec[Ex[0]]});
+      if(ratio<(single?.25:.45)&&!soft){
+        var skip=Ex.slice(); /* the fifth and major third above count as overtones, not wrong notes, only when the target itself is sounding */
+        Ex.forEach(function(p){if(vec[p]>=.08)skip.push((p+7)%12,(p+4)%12)});
+        var heard=[0,1,2,3,4,5,6,7,8,9,10,11].filter(function(p){return skip.indexOf(p)<0}).sort(function(x,y){return vec[y]-vec[x]}).slice(0,Ex.length);
+        if(!heard.length)heard=[0,1,2,3,4,5,6,7,8,9,10,11].filter(function(p){return Ex.indexOf(p)<0}).sort(function(x,y){return vec[y]-vec[x]}).slice(0,Ex.length); /* only a fifth or third above was heard: still say what it was */
+        note(k2,true,"Pitch mismatch","Expected "+names(Ex)+"; heard "+names(heard),ta,tb);
+      }else{
+        var miss=Ex.length>1&&!single?Ex.filter(function(p){return vec[p]<(r.relax?.20:.35)*ratio/Ex.length}):[];
+        if(miss.length)note(k2,true,"Chord note not heard","The chord includes "+names(miss)+", which wasn’t clearly heard",ta,tb);
+        else{
+          /* octave check, single-line (monophonic) parts only: the real fundamental should be at the written octave */
+          var oct=null,M0=ev[k2].midis[0];
+          if(r.mono&&ev[k2].midis.length===1&&!single&&M0>=55&&M0<=96){ /* above D♯6 the octave above lies outside the analysed range, so only a note that sounded too low can be caught */
+            var aM=0,aU=0,aD=0,hasU=M0<=87;
+            use.forEach(function(g){var s3=r.sp[g];if(s3){aM+=s3[M0-36];if(hasU)aU+=s3[M0-24];aD+=s3[M0-48]}});
+            if(hasU&&aU>0&&aM<.2*aU)oct="higher";else if(aD>0&&aD>1.5*aM)oct="lower";
+          }
+          if(oct)note(k2,true,"Wrong octave","Expected "+names(Ex)+", but it sounded an octave "+oct,ta,tb);
+          else note(k2,false,"","",ta,tb);
+        }
+      }
+    });
+    /* repeated identical notes: chroma alone cannot tell four quarter notes from one whole note, so look for re-attacks (a gap, a dip or a rise in loudness) */
+    var gkey=function(q3){return ev[q3].midis.slice().sort().join(",")};
+    for(var qa=vis[0],qe=vis[vis.length-1];qa<=qe;){
+      var qb=qa;while(qb+1<K&&gkey(qb+1)===gkey(qa))qb++;
+      var m2=qb-qa+1;
+      if(m2>=2){
+        var gf=[];for(var qq=qa;qq<=qb;qq++)if(by[qq])gf=gf.concat(by[qq]);
+        if(gf.length){
+          gf.sort(function(x3,y3){return x3-y3});
+          var g0=gf[0],g1=gf[gf.length-1];
+          if(g0>w.a&&g1<w.b&&g0>=w.ta&&g0<w.tb&&(tt[g1]-tt[g0]+1/FPS)/m2>=.12){
+            var on=0,gx,pvHit=false,edge,hit,steady=true,nSt=0;
+            for(gx=g0;gx<=g1;gx++){
+              if(ch[gx]===null){pvHit=false;steady=false;continue}
+              edge=gx<g0+2||gx>=g1;
+              if(!edge){nSt++;if(r.dp[gx]<.75||(r.rm[gx-1]>0&&r.rm[gx]>1.25*r.rm[gx-1]))steady=false} /* the first note's own attack and the last note's release are not re-attacks */
+              hit=on===0||ch[gx-1]===null||(!edge&&(r.dp[gx]<.5||(r.rm[gx-1]>0&&r.rm[gx]>1.5*r.rm[gx-1])));
+              if(hit&&!pvHit)on++;
+              pvHit=hit;
+            }
+            if(on<(m2===2?(steady&&nSt>=3?2:1):Math.ceil(m2*.6)))note(qa,true,"Repeated notes","The score repeats "+names(ev[qa].midis.map(function(m3){return m3%12}))+" "+m2+" times here, but only "+on+" separate attack"+(on===1?" was":"s were")+" heard",tt[g0],tt[g1]);
+          }
+        }
+      }
+      qa=qb+1;
+    }
+    Object.keys(bw).forEach(function(m){
+      var o=bw[m];
+      var arr=bars[m],last=arr[arr.length-1];
+      if(o.bad){messy=true;badM.push(m)}
+      if(last&&last.run===w.run&&o.ta-last.t1<2.5){last.t1=o.tb;last.n+=o.n;last.bad+=o.bad;if(o.bad&&!last.type){last.type=o.type;last.text=o.text}}
+      else arr.push({t:o.ta,t1:o.tb,n:o.n,bad:o.bad,type:o.type,text:o.text,run:w.run});
+    });
+    wins.push({t0:t0,t1:t1,s:messy?2:1,bm:badM});followed++;
+  }
+  return {bars:order.map(function(m){return{m:m,takes:bars[m].filter(function(t){return t.n>=2})}}),wins:wins,dur:dur,played:played,followed:followed,total:W.length};
+}
+
+/* ---------- simplified notation preview ---------- */
+function drawSheet(el,sc,bad,mk){
+  var E=sc.disp||sc.events;if(!E||!E.length){el.innerHTML="";return}
+  var grand=sc.staves>=2, /* piano-style part: treble staff over bass staff */
+      all=[].concat.apply([],E.map(function(e){return e.midis})).sort(function(a,b){return a-b}),
+      bass=all[all.length>>1]<57,DIA=[0,0,1,2,2,3,3,4,5,5,6,6],AL=["","♯","","♭","","","♯","","♭","","♭",""],S=[],cur=null,bd={},mkd={};
+  (bad||[]).forEach(function(b){bd[b]=1});(mk||[]).forEach(function(b){mkd[b]=1});
+  E.forEach(function(e){
+    if(!cur||(e.measure!==cur.last&&e.beat-cur.s>=12)){cur={s:e.beat,ev:[],last:e.measure};S.push(cur)}
+    cur.ev.push(e);cur.last=e.measure;
+  });
+  var out=[],GAP=82,SH=grand?214:120,x0=44,w=590;
+  S.forEach(function(sy,si){
+    var l=sy.ev[sy.ev.length-1],end=si<S.length-1?S[si+1].s:l.beat+l.dur,y0=si*SH+84,X=function(b){return x0+(b-sy.s)/(end-sy.s||1)*w},i,
+        /* each staff: [y of its bottom line, pitch reference, label] */
+        staffs=grand?[[y0,30,"treble"],[y0+GAP,18,"bass"]]:[[y0,bass?18:30,bass?"bass":"treble"]],
+        yLow=staffs[staffs.length-1][0];
+    staffs.forEach(function(sf){
+      for(i=0;i<5;i++)out.push('<line class="ln" x1="'+(x0-14)+'" x2="'+(x0+w+8)+'" y1="'+(sf[0]-i*8)+'" y2="'+(sf[0]-i*8)+'"/>');
+      out.push('<text x="2" y="'+(sf[0]-12)+'">'+sf[2]+'</text>');
+    });
+    var segs=[];
+    sy.ev.forEach(function(e){if(!segs.length||segs[segs.length-1].m!==e.measure)segs.push({m:e.measure,x:X(e.beat)-9})});
+    segs.forEach(function(g,k){
+      var x2=k<segs.length-1?segs[k+1].x:x0+w+8;
+      if(bd[g.m])out.push('<rect class="bad" x="'+g.x+'" y="'+(y0-44)+'" width="'+(x2-g.x)+'" height="'+(yLow-y0+56)+'"/>');
+      if(mkd[g.m])out.push('<rect class="mk" x="'+g.x+'" y="'+(y0-44)+'" width="'+(x2-g.x)+'" height="'+(yLow-y0+56)+'"/>');
+      out.push('<line class="ln" x1="'+g.x+'" x2="'+g.x+'" y1="'+yLow+'" y2="'+(y0-32)+'"/><text x="'+(g.x+3)+'" y="'+(y0-37)+'">'+g.m+'</text>');
+    });
+    sy.ev.forEach(function(e){
+      var x=X(e.beat),groups=grand?[[],[]]:[[]];
+      e.midis.forEach(function(m,j){groups[grand?((e.st?e.st[j]===2:m<60)?1:0):0].push(m)});
+      groups.forEach(function(gm,gi){
+        if(!gm.length)return;
+        var Y0=staffs[gi][0],ref=staffs[gi][1],ys=[],sum=0;
+        gm.forEach(function(m){
+          var pc=m%12,pos=(Math.floor(m/12)-1)*7+DIA[pc]-ref,y=Y0-pos*4,p;
+          ys.push(y);sum+=pos;
+          if(pos<=-2)for(p=-2;p>=pos;p-=2)out.push('<line class="ln" x1="'+(x-8)+'" x2="'+(x+8)+'" y1="'+(Y0-p*4)+'" y2="'+(Y0-p*4)+'"/>');
+          if(pos>=10)for(p=10;p<=pos;p+=2)out.push('<line class="ln" x1="'+(x-8)+'" x2="'+(x+8)+'" y1="'+(Y0-p*4)+'" y2="'+(Y0-p*4)+'"/>');
+          if(AL[pc])out.push('<text x="'+(x-16)+'" y="'+(y+4)+'">'+AL[pc]+'</text>');
+          out.push('<ellipse class="'+(e.dur>=2?'op':'nh')+'" cx="'+x+'" cy="'+y+'" rx="5.2" ry="3.8"/>');
+          if([3,1.5,.75,.375].some(function(d4){return Math.abs(e.dur-d4)<1e-4}))out.push('<circle class="nh" cx="'+(x+9)+'" cy="'+(y-2)+'" r="1.4"/>');
+        });
+        if(e.dur<4){
+          var up=sum/gm.length<6,yt=Math.min.apply(null,ys),yb=Math.max.apply(null,ys),sx=up?x+4.8:x-4.8,y1=up?yb:yt,y2=up?yt-28:yb+28;
+          out.push('<line class="ln" x1="'+sx+'" x2="'+sx+'" y1="'+y1+'" y2="'+y2+'"/>');
+          if(e.dur<1)out.push('<line class="ln" x1="'+sx+'" x2="'+(sx+7)+'" y1="'+y2+'" y2="'+(y2+(up?10:-10))+'"/>');
+        }
+      });
+    });
+  });
+  el.innerHTML='<svg viewBox="0 0 660 '+(S.length*SH)+'" role="img" aria-label="Simplified notation of the score">'+out.join("")+'</svg>';
+}
+
+/* ---------- review ---------- */
+var url=null,stopAt=null,player=$("player"),curS=null,dismissed={},curHist=[],raf=0,TAGS=["Rhythm","Intonation","Tone","Fingering"];
+var fixing=false,fixT=0,fixPlay=false;
+player.addEventListener("loadedmetadata",function(){
+  if(player.duration===Infinity){fixing=true;fixT=0;fixPlay=false;player.currentTime=1e101;var h=function(){player.removeEventListener("timeupdate",h);fixing=false;progSeek=Math.abs(player.currentTime-fixT)>.01;player.currentTime=fixT;if(fixPlay){fixPlay=false;player.play()}};player.addEventListener("timeupdate",h)}
+});
+player.addEventListener("timeupdate",function(){if(stopAt!==null&&player.currentTime>=stopAt){player.pause();stopAt=null}});
+/* playhead on the timeline: follows the audio while it plays (smoothed between timeupdate events) */
+function movePh(){var ph=$("ph");if(ph&&curS)ph.style.left=Math.min(100,Math.max(0,player.currentTime/(curS.res.dur||1)*100))+"%"}
+function tickPh(){movePh();raf=(!player.paused&&!player.ended)?requestAnimationFrame(tickPh):0}
+player.addEventListener("play",function(){if(!raf)raf=requestAnimationFrame(tickPh)});
+["timeupdate","seeked","pause","ended","loadedmetadata"].forEach(function(e){player.addEventListener(e,movePh)});
+var progSeek=false;
+player.addEventListener("seeking",function(){if(progSeek)progSeek=false;else stopAt=null}); /* a manual scrub cancels the clip limit */
+function hear(t0,t1){var tgt=Math.max(0,t0-1.5);if(fixing){fixT=tgt;fixPlay=true}progSeek=Math.abs(player.currentTime-tgt)>.01;player.currentTime=tgt;stopAt=Math.min(t1+1.5,t0+12);player.play()}
+function btn(label,cls,fn,tip){var b=document.createElement("button");b.textContent=label;if(cls)b.className=cls;if(tip)b.title=tip;b.onclick=fn;return b}
+/* bar being played at (or just before) time t, within 8 s, or null */
+function barNear(r,t){var best=null,bd=8.01;r.bars.forEach(function(b){b.takes.forEach(function(k){if(k.t1<t&&(r.wins||[]).some(function(w){return w.s===0&&w.t0>=k.t1&&w.t0<t&&Math.min(w.t1,t)-w.t0>.6}))return; /* an unmatched stretch lies between: do not reach back past it */
+    var d=t<k.t?1e9:t<=k.t1?0:t-k.t1;if(d<bd){bd=d;best=b.m}})});return best}
+/* self-diagnosis pills, saved with the session */
+function pills(key){
+  var w=document.createElement("span"),lab=document.createElement("small");
+  w.className="pills";w.setAttribute("role","group");w.setAttribute("aria-label","What felt off?");
+  lab.textContent="What felt off?";w.appendChild(lab);
+  TAGS.forEach(function(t){
+    var b=document.createElement("button"),on=function(){return !!(curS.tags[key]&&curS.tags[key][t])};
+    b.className="pill";b.textContent=t;b.setAttribute("aria-pressed",on()?"true":"false");
+    b.onclick=function(){
+      var o=curS.tags[key]||(curS.tags[key]={});
+      if(o[t])delete o[t];else o[t]=1;
+      b.setAttribute("aria-pressed",on()?"true":"false");saveLast(curS);
+    };
+    w.appendChild(b);
+  });
+  return w;
+}
+function dayLabel(at){try{return new Date(at).toLocaleDateString(undefined,{month:"short",day:"numeric"})}catch(e){return ""}}
+/* matched takes per session for one bar, oldest first; null with fewer than two sessions */
+function trend(m){
+  var tr=curHist.filter(function(h){return h.bars[m]});
+  if(tr.length<2)return null;
+  return {text:tr.map(function(h){return dayLabel(h.at)+" "+h.bars[m][1]+"/"+h.bars[m][0]}).join(" → "),
+          aria:tr.map(function(h){return dayLabel(h.at)+": "+h.bars[m][1]+" of "+h.bars[m][0]+" takes matched"}).join(", ")};
+}
+function setTrend(el,m){var t=trend(m);if(t){el.textContent="Takes that matched, by session: "+t.text;el.setAttribute("aria-label","Takes that matched, by session: "+t.aria)}}
+function openReview(s){
+  if(url)URL.revokeObjectURL(url);
+  url=URL.createObjectURL(s.blob);player.src=url;stopAt=null;
+  s.ignored=s.ignored||{};s.marks=s.marks||[];s.tags=s.tags||{};
+  curS=s;dismissed={};curHist=[];
+  loadHist(s.key||histKey(s.title,s.part)).then(function(h){curHist=h;render();show("review")});
+}
+function render(){
+  var s=curS,r=s.res,ig=s.ignored,mk=s.marks,box=$("issues"),tl=$("tl");box.innerHTML="";tl.innerHTML="";
+  var rows=r.bars.filter(function(b){return b.takes.length}).map(function(b){return{m:b.m,takes:b.takes,bad:b.takes.filter(function(t){return t.bad>0})}});
+  var trouble=rows.filter(function(x){return x.bad.length&&!ig[x.m]&&!dismissed[x.m]}).sort(function(a,b){return b.bad.length/b.takes.length-a.bad.length/a.takes.length||b.bad.length-a.bad.length}).slice(0,20),
+      clean=rows.filter(function(x){return !x.bad.length}).length,
+      nIg=rows.filter(function(x){return x.bad.length&&ig[x.m]}).length,sum;
+  if(!r.followed)sum="Couldn’t match your playing to "+s.title+". Check it’s the right piece and that the phone could hear you.";
+  else sum=(s.part?s.part+". ":"")+"Followed "+fmt(r.played)+" of playing ("+r.followed+" of "+r.total+" stretches matched). "+(trouble.length?trouble.length+" bar"+(trouble.length===1?" has":"s have")+" notes to check, most frequent first. ":"Nothing to check. ")+(clean?clean+" bar"+(clean===1?"":"s")+" matched the score every time.":"");
+  if(mk.length)sum+=" You marked "+mk.length+" moment"+(mk.length===1?"":"s")+".";
+  if(s.dev&&s.dev.length)sum+=" An audio device changed at "+s.dev.map(fmt).join(", ")+", so playing after that may be missing.";
+  $("sum").textContent=sum;
+  r.wins.forEach(function(w){
+    var st=w.s===2&&w.bm?(w.bm.some(function(m){return !ig[m]&&!dismissed[m]})?2:1):w.s;
+    var b=document.createElement("button");b.className=st===2?"m":st===1?"f":"l";
+    b.style.left=(w.t0/r.dur*100)+"%";b.style.width=((w.t1-w.t0)/r.dur*100)+"%";
+    b.setAttribute("aria-label",(st===2?"Notes to check":st===1?"Followed":"Not matched")+" at "+fmt(w.t0));
+    b.onclick=function(){hear(w.t0,w.t1)};tl.appendChild(b);
+  });
+  mk.forEach(function(t){
+    var b=document.createElement("button");b.className="pin";b.style.left="calc("+Math.min(99,t/r.dur*100)+"% - 2px)";
+    b.setAttribute("aria-label","Marked moment at "+fmt(t));b.onclick=function(){hear(t-6,t)};tl.appendChild(b);
+  });
+  var ph=document.createElement("span");ph.id="ph";ph.className="ph";ph.setAttribute("aria-hidden","true");tl.appendChild(ph);movePh();
+  var near=mk.map(function(t){return barNear(r,t)});
+  drawSheet($("revSheet"),s.sc||score||{},trouble.map(function(x){return x.m}),near.filter(function(m){return m!==null}));
+  trouble.forEach(function(x){
+    if(dismissed[x.m])return;
+    var d=document.createElement("div");d.className="issue";
+    d.innerHTML='<span class="bar"></span><span class="what"><strong></strong><small></small><span class="dots" role="img"></span><small class="trend"></small></span><span class="btns"></span>';
+    d.querySelector(".bar").textContent="Bar "+x.m;
+    d.querySelector("strong").textContent=x.bad.length+" of "+x.takes.length+" take"+(x.takes.length===1?"":"s")+" had notes to check";
+    var cnt={};x.bad.forEach(function(t){cnt[t.type]=(cnt[t.type]||0)+1});
+    var ty=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]})[0],ex=x.bad.filter(function(t){return t.type===ty})[0];
+    d.querySelector("small").textContent="Most often: "+ty+". "+ex.text;
+    var dots=d.querySelector(".dots");dots.setAttribute("aria-label","Takes in order: "+x.takes.map(function(t){return t.bad?"notes to check":"matched"}).join(", "));
+    x.takes.forEach(function(t){var sp=document.createElement("span");sp.textContent=t.bad?"○":"●";sp.style.color=t.bad?"var(--rec)":"var(--brass)";dots.appendChild(sp)});
+    setTrend(d.querySelector(".trend"),x.m);
+    d.querySelector(".what").appendChild(pills("b:"+x.m));
+    var worst=x.bad.slice().sort(function(a,b){return b.bad-a.bad})[0],good=x.takes.filter(function(t){return !t.bad}).pop(),bt=d.querySelector(".btns");
+    bt.appendChild(btn("Hear least matched","primary",function(){hear(worst.t,worst.t1)}));
+    if(good)bt.appendChild(btn("Hear best matched","",function(){hear(good.t,good.t1)}));
+    bt.appendChild(btn("Intentional","",function(){curS.ignored[x.m]=1;saveLast(curS);syncHist(curS).then(render)},"Rubato, an ornament or a choice you made: leave this bar out of the list"));
+    bt.appendChild(btn("Dismiss","",function(){dismissed[x.m]=1;render()}));
+    box.appendChild(d);
+  });
+  $("ign").classList.toggle("hide",!nIg);
+  $("ignTxt").textContent=nIg+" bar"+(nIg===1?"":"s")+" marked intentional and left out above.";
+  /* bars that had notes to check in the previous session that covered them, but matched every take this time */
+  var imp=rows.filter(function(x){return !x.bad.length&&(function(){var pv=curHist.filter(function(h){return h.at<s.at&&h.bars[x.m]}).sort(function(a,b){return b.at-a.at})[0];return pv&&pv.bars[x.m][1]<pv.bars[x.m][0]})()}),ib=$("improved");
+  ib.innerHTML="";$("improvedWrap").classList.toggle("hide",!imp.length);
+  imp.forEach(function(x){
+    var d=document.createElement("div");d.className="issue";
+    d.innerHTML='<span class="bar"></span><span class="what"><strong>Matched every take this session</strong><small class="trend"></small></span>';
+    d.querySelector(".bar").textContent="Bar "+x.m;setTrend(d.querySelector(".trend"),x.m);ib.appendChild(d);
+  });
+  var mb=$("marks");mb.innerHTML="";$("marksWrap").classList.toggle("hide",!mk.length);
+  mk.forEach(function(t,i){
+    var d=document.createElement("div");d.className="issue";
+    d.innerHTML='<span class="bar"></span><span class="what"><strong></strong><small></small></span><span class="btns"></span>';
+    d.querySelector(".bar").textContent=fmt(t);
+    d.querySelector("strong").textContent="Moment "+(i+1);
+    d.querySelector("small").textContent=near[i]!==null?"Near bar "+near[i]+".":"No bar matched at this point.";
+    d.querySelector(".what").appendChild(pills("m:"+i));
+    d.querySelector(".btns").appendChild(btn("Hear","primary",function(){hear(t-6,t)}));
+    mb.appendChild(d);
+  });
+}
+
+/* ---------- wiring ---------- */
+$("start").onclick=function(){if(score)startSession()};
+$("stop").onclick=finish;
+$("mark").onclick=mark;
+$("unign").onclick=function(){if(!curS)return;curS.ignored={};saveLast(curS);syncHist(curS).then(render)};
+$("back").onclick=function(){player.pause();$("stop").disabled=false;$("mark").disabled=false;show("home");refreshLast()};
+$("openLast").onclick=function(){loadLast().then(function(s){if(s)openReview(s)})};
+function refreshLast(){loadLast().then(function(s){$("lastWrap").classList.toggle("hide",!s)})}
+initOpts();
+loadScore().then(function(sv){if(sv&&!lib)try{setScore(sv)}catch(e){}});
+refreshLast();
+})();
+
+</script>
+</body>
+</html>
